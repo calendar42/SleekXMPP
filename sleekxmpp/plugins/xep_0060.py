@@ -252,12 +252,23 @@ class xep_0060(base.base_plugin):
 		return nodes
 
 	def getItems(self, jid, node):
-		response = self.xmpp.plugin['xep_0030'].getItems(jid, node)
-		items = response.findall('{http://jabber.org/protocol/disco#items}query/{http://jabber.org/protocol/disco#items}item')
-		nodeitems = []
+		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
+		items = ET.Element('{http://jabber.org/protocol/pubsub}items')
+		items.attrib['node'] = node
+		pubsub.append(items)
+		iq = self.xmpp.makeIqGet()
+		iq.append(pubsub)
+		iq.attrib['to'] = jid
+		iq.attrib['from'] = self.xmpp.boundjid.full
+		id = iq['id']
+		response = iq.send()
+		if response is False or response is None or response['type'] == 'error': return False
+
+		items = response.findall('{http://jabber.org/protocol/pubsub}pubsub/{http://jabber.org/protocol/pubsub}items/{http://jabber.org/protocol/pubsub}item')
+		nodeitems = {}
 		if items is not None and items is not False:
 			for item in items:
-				nodeitems.append(item.get('node'))
+				nodeitems[item.get('id')] = item[0]
 		return nodeitems
 
 	def addNodeToCollection(self, jid, child, parent=''):
