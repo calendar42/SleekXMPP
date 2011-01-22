@@ -125,7 +125,7 @@ class xep_0060(base.base_plugin):
 			return False
 		return Form(xml=form)
 
-	def getNodeSubscriptions(self, jid, node):
+	def getNodeSubscriptions(self, jid):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
 		subscriptions = ET.Element('subscriptions')
 		subscriptions.attrib['node'] = node
@@ -146,6 +146,28 @@ class xep_0060(base.base_plugin):
 			subs = {}
 			for sub in results:
 				subs[sub.get('jid')] = sub.get('subscription')
+			return subs
+	
+	def getSubscriptions(self, jid):
+		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
+		subscriptions = ET.Element('subscriptions')
+		pubsub.append(subscriptions)
+		iq = self.xmpp.makeIqGet()
+		iq.append(pubsub)
+		iq.attrib['to'] = jid
+		iq.attrib['from'] = self.xmpp.boundjid.full
+		id = iq['id']
+		result = iq.send()
+		if result is None or result == False or result['type'] == 'error':
+			log.warning("got error instead of config")
+			return False
+		else:
+			results = result.findall('{http://jabber.org/protocol/pubsub}pubsub/{http://jabber.org/protocol/pubsub}subscriptions/{http://jabber.org/protocol/pubsub}subscription')
+			if results is None:
+				return False
+			subs = {}
+			for sub in results:
+				subs[sub.get('subid')] = sub
 			return subs
 
 	def getNodeAffiliations(self, jid, node):
