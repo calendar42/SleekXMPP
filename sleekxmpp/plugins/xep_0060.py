@@ -192,6 +192,28 @@ class xep_0060(base.base_plugin):
 			for sub in results:
 				subs[sub.get('jid')] = sub.get('affiliation')
 			return subs
+	
+	def getAffiliations(self, jid):
+		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
+		affiliations = ET.Element('affiliations')
+		pubsub.append(affiliations)
+		iq = self.xmpp.makeIqGet()
+		iq.append(pubsub)
+		iq.attrib['to'] = jid
+		iq.attrib['from'] = self.xmpp.boundjid.full
+		id = iq['id']
+		result = iq.send()
+		if result is None or result == False or result['type'] == 'error':
+			log.warning("got error instead of config")
+			return False
+		else:
+			results = result.findall('{http://jabber.org/protocol/pubsub}pubsub/{http://jabber.org/protocol/pubsub}affiliations/{http://jabber.org/protocol/pubsub}affiliation')
+			if results is None:
+				return False
+			subs = {}
+			for sub in results:
+				subs[sub.get('node')] = sub.get('affiliation')
+			return subs
 
 	def deleteNode(self, jid, node):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
