@@ -162,13 +162,7 @@ class xep_0060(base.base_plugin):
 			log.warning("got error instead of config")
 			return False
 		else:
-			results = result.findall('{http://jabber.org/protocol/pubsub}pubsub/{http://jabber.org/protocol/pubsub}subscriptions/{http://jabber.org/protocol/pubsub}subscription')
-			if results is None:
-				return False
-			subs = {}
-			for sub in results:
-				subs[sub.get('subid')] = sub
-			return subs
+			return result
 
 	def getNodeAffiliations(self, jid, node):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
@@ -207,13 +201,7 @@ class xep_0060(base.base_plugin):
 			log.warning("got error instead of config")
 			return False
 		else:
-			results = result.findall('{http://jabber.org/protocol/pubsub}pubsub/{http://jabber.org/protocol/pubsub}affiliations/{http://jabber.org/protocol/pubsub}affiliation')
-			if results is None:
-				return False
-			subs = {}
-			for sub in results:
-				subs[sub.get('node')] = sub.get('affiliation')
-			return subs
+			return result
 
 	def deleteNode(self, jid, node):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
@@ -295,6 +283,17 @@ class xep_0060(base.base_plugin):
 				nodes[item.get('node')] = item.get('name')
 		return nodes
 
+	def getItemsQuery(self, jid, node):
+		query = ET.Element('{http://jabber.org/protocol/disco#items}query')
+		query.attrib['node'] = node
+		iq = self.xmpp.makeIqGet()
+		iq.append(query)
+		iq.attrib['to'] = jid
+		iq.attrib['from'] = self.xmpp.boundjid.full
+		response = iq.send()
+		if response is False or response is None or response['type'] == 'error': return False
+		return response
+
 	def getItems(self, jid, node):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
 		items = ET.Element('{http://jabber.org/protocol/pubsub}items')
@@ -304,7 +303,6 @@ class xep_0060(base.base_plugin):
 		iq.append(pubsub)
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.boundjid.full
-		id = iq['id']
 		response = iq.send()
 		if response is False or response is None or response['type'] == 'error': return False
 
