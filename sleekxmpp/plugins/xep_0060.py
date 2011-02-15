@@ -27,8 +27,9 @@ class xep_0060(base.base_plugin):
 		configure = ET.Element('configure')
 		if collection:
 			ntype = 'collection'
-		#if config is None:
-		#	submitform = self.xmpp.plugin['xep_0004'].makeForm('submit')
+		if config is None and collection == True:
+			config = self.xmpp.plugin['xep_0004'].makeForm('submit')
+
 		#else:
 		if config is not None:
 			submitform = config
@@ -223,7 +224,9 @@ class xep_0060(base.base_plugin):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
 		configure = ET.Element('configure')
 		configure.attrib['node'] = node
+
 		config = config.getXML('submit')
+
 		configure.append(config)
 		pubsub.append(configure)
 		iq = self.xmpp.makeIqSet(pubsub)
@@ -274,13 +277,14 @@ class xep_0060(base.base_plugin):
 		if result is None or result is False or result['type'] == 'error': return False
 		return True
 
-	def getNodes(self, jid):
-		response = self.xmpp.plugin['xep_0030'].getItems(jid)
-		items = response.findall('{http://jabber.org/protocol/disco#items}query/{http://jabber.org/protocol/disco#items}item')
+	def getNodes(self, jid, node = None):
+		iq = self.xmpp.plugin['xep_0030'].getItems(jid, node)
 		nodes = {}
-		if items is not None and items is not False:
-			for item in items:
-				nodes[item.get('node')] = item.get('name')
+		if iq is not None:
+			print iq['disco_items']
+#			for item in iq['disco_items']:
+#				print item.key()
+#				nodes[item.get('node')] = item.get('name')
 		return nodes
 
 	def getItemsQuery(self, jid, node):
@@ -294,10 +298,14 @@ class xep_0060(base.base_plugin):
 		if response is False or response is None or response['type'] == 'error': return False
 		return response
 
-	def getItems(self, jid, node):
+	def getItems(self, jid, node, max_items=None):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
 		items = ET.Element('{http://jabber.org/protocol/pubsub}items')
 		items.attrib['node'] = node
+		
+		if max_items is not None:
+		    items.attrib['max_items'] = max_items
+
 		pubsub.append(items)
 		iq = self.xmpp.makeIqGet()
 		iq.append(pubsub)
@@ -325,6 +333,16 @@ class xep_0060(base.base_plugin):
 			config.addField('pubsub#collection', value=parent)
 		if not self.setNodeConfig(jid, child, config):
 			return False
+
+		config = self.getNodeConfig(jid, parent)
+		try:
+			config.field['pubsub#children'].setValue(parent)
+		except KeyError:
+			log.warning("pubsub#children doesn't exist in config, trying to add it")
+			config.addField('pubsub#children', value=child)
+		if not self.setNodeConfig(jid, parent, config):
+			return False
+
 		return True
 
 	def modifyAffiliation(self, ps_jid, node, user_jid, affiliation):
@@ -345,20 +363,6 @@ class xep_0060(base.base_plugin):
 		result = iq.send()
 		if result is None or result is False or result['type'] == 'error':
 		    return False
-		return True
-
-	def addNodeToCollection(self, jid, child, parent=''):
-		config = self.getNodeConfig(jid, child)
-		if not config or config is None:
-			self.lasterror = "Config Error"
-			return False
-		try:
-			config.field['pubsub#collection'].setValue(parent)
-		except KeyError:
-			log.warning("pubsub#collection doesn't exist in config, trying to add it")
-			config.addField('pubsub#collection', value=parent)
-		if not self.setNodeConfig(jid, child, config):
-			return False
 		return True
 
 	def removeNodeFromCollection(self, jid, child):
