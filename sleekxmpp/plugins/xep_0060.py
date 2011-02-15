@@ -304,7 +304,7 @@ class xep_0060(base.base_plugin):
 		items.attrib['node'] = node
 		
 		if max_items is not None:
-		    items.attrib['max_items'] = max_items
+		    items.attrib['max_items'] = str(max_items)
 
 		pubsub.append(items)
 		iq = self.xmpp.makeIqGet()
