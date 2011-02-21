@@ -298,21 +298,27 @@ class xep_0060(base.base_plugin):
 		if response is False or response is None or response['type'] == 'error': return False
 		return response
 
-	def getItems(self, jid, node, max_items=None):
+	def getItems(self, jid, node, item=None, max_items=None, new=False):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
-		items = ET.Element('{http://jabber.org/protocol/pubsub}items')
+		items = ET.SubElement(pubsub, '{http://jabber.org/protocol/pubsub}items')
 		items.attrib['node'] = node
 		
 		if max_items is not None:
 		    items.attrib['max_items'] = str(max_items)
 
-		pubsub.append(items)
+		if item is not None:
+		    s_item = ET.SubElement(items, '{http://jabber.org/protocol/pubsub}item')
+		    s_item.attrib['id'] = item
+
 		iq = self.xmpp.makeIqGet()
 		iq.append(pubsub)
 		iq.attrib['to'] = jid
 		iq.attrib['from'] = self.xmpp.boundjid.full
 		response = iq.send()
 		if response is False or response is None or response['type'] == 'error': return False
+
+		if new == True:
+		    return response
 
 		items = response.findall('{http://jabber.org/protocol/pubsub}pubsub/{http://jabber.org/protocol/pubsub}items/{http://jabber.org/protocol/pubsub}item')
 		nodeitems = {}
