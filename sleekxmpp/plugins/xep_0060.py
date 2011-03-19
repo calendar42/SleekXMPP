@@ -126,7 +126,7 @@ class xep_0060(base.base_plugin):
 			return False
 		return Form(xml=form)
 
-	def getNodeSubscriptions(self, jid):
+	def getNodeSubscriptions(self, jid, node):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
 		subscriptions = ET.Element('subscriptions')
 		subscriptions.attrib['node'] = node
@@ -141,13 +141,7 @@ class xep_0060(base.base_plugin):
 			log.warning("got error instead of config")
 			return False
 		else:
-			results = result.findall('{http://jabber.org/protocol/pubsub#owner}pubsub/{http://jabber.org/protocol/pubsub#owner}subscriptions/{http://jabber.org/protocol/pubsub#owner}subscription')
-			if results is None:
-				return False
-			subs = {}
-			for sub in results:
-				subs[sub.get('jid')] = sub.get('subscription')
-			return subs
+			return result
 	
 	def getSubscriptions(self, jid):
 		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
@@ -218,6 +212,21 @@ class xep_0060(base.base_plugin):
 			return True
 		else:
 			return False
+	
+	def purgeNode(self, jid, node):
+		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
+		iq = self.xmpp.makeIqSet()
+		purge = ET.Element('purge')
+		purge.attrib['node'] = node
+		pubsub.append(purge)
+		iq.append(pubsub)
+		iq.attrib['to'] = jid
+		iq.attrib['from'] = self.xmpp.boundjid.full
+		result = iq.send()
+		if result is not None and result is not False and result['type'] != 'error':
+			return True
+		else:
+			return False
 
 
 	def setNodeConfig(self, jid, node, config):
@@ -279,13 +288,10 @@ class xep_0060(base.base_plugin):
 
 	def getNodes(self, jid, node = None):
 		iq = self.xmpp.plugin['xep_0030'].getItems(jid, node)
-		nodes = {}
+#		nodes = {}
 		if iq is not None:
-			print iq['disco_items']
-#			for item in iq['disco_items']:
-#				print item.key()
-#				nodes[item.get('node')] = item.get('name')
-		return nodes
+			return iq['disco_items']
+		return False
 
 	def getItemsQuery(self, jid, node):
 		query = ET.Element('{http://jabber.org/protocol/disco#items}query')
