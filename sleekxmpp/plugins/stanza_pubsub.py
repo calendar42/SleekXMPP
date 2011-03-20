@@ -409,33 +409,28 @@ class OwnerRedirect(ElementBase):
 
 registerStanzaPlugin(OwnerDelete, OwnerRedirect)
 
+class OwnerSubscription(ElementBase):
+	namespace = 'http://jabber.org/protocol/pubsub#owner'
+	name = 'subscription'
+	plugin_attrib = name
+	interfaces = set(('jid', 'subscription', 'subid'))
+	plugin_attrib_map = {}
+	plugin_tag_map = {}
+	
+	def setJid(self, value):
+		self._setAttr('jid', str(value))
+	
+	def getJid(self):
+		return JID(self._getAttr('jid'))
+
 class OwnerSubscriptions(Subscriptions):
 	namespace = 'http://jabber.org/protocol/pubsub#owner'
 	interfaces = set(('node',))
 	plugin_attrib_map = {}
 	plugin_tag_map = {}
+	subitem = (OwnerSubscription,)
 	
-	def append(self, subscription):
-		if not isinstance(subscription, OwnerSubscription):
-			raise TypeError
-		self.xml.append(subscription.xml)
-		return self.subscriptions.append(subscription)
-
 registerStanzaPlugin(PubsubOwner, OwnerSubscriptions)
-
-class OwnerSubscription(ElementBase):
-	namespace = 'http://jabber.org/protocol/pubsub#owner'
-	name = 'subscription'
-	plugin_attrib = name
-	interfaces = set(('jid', 'subscription'))
-	plugin_attrib_map = {}
-	plugin_tag_map = {}
-
-	def setJid(self, value):
-		self._setAttr('jid', str(value))
-	
-	def getJid(self):
-		return JID(self._getAttr('from'))
 
 class Event(ElementBase):
 	namespace = 'http://jabber.org/protocol/pubsub#event'
