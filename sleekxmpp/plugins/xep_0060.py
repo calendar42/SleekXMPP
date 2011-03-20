@@ -89,8 +89,9 @@ class xep_0060(base.base_plugin):
 				unsubscribe.attrib['jid'] = self.xmpp.boundjid.full
 		else:
 			unsubscribe.attrib['jid'] = subscribee
-        if subid not is None:
-            unsubscribe.attrib['subid'] = subid
+		
+		if subid is not None:
+			unsubscribe.attrib['subid'] = subid
 		pubsub.append(unsubscribe)
 		iq = self.xmpp.makeIqSet(pubsub)
 		iq.attrib['to'] = jid
