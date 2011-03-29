@@ -130,7 +130,7 @@ class xep_0060(base.base_plugin):
 		return Form(xml=form)
 
 	def getNodeSubscriptions(self, jid, node):
-		pubsub = ET.Element('{http://jabber.org/protocol/pubsub#owner}pubsub')
+		pubsub = ET.Element('{http://jabber.org/protocol/pubsub}pubsub')
 		subscriptions = ET.Element('subscriptions')
 		subscriptions.attrib['node'] = node
 		pubsub.append(subscriptions)
