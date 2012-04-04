@@ -231,14 +231,14 @@ class Geoloc(ElementBase):
             except ValueError:
                 return None
 
-    def set_timestamp(self, timestamp):
+    def set_timestamp(self, datetime):
         """
         Set the value of the <timestamp> element.
 
         Arguments:
-            timestamp -- UTC timestamp specifying the moment when the reading was taken
+            datetime -- datetime specifying the moment when the reading was taken
         """
-        self._set_sub_text('timestamp', text=str(xep_0082.datetime(timestamp)))
+        self._set_sub_text('timestamp', text=str(xep_0082.format_datetime(datetime)))
         return self
 
     def get_timestamp(self):
