@@ -37,6 +37,7 @@ class xep_0060(base_plugin):
         self.xmpp.registerHandler(Callback('pubsub_owner config node', StanzaPath('iq@type=get/pubsub_owner/configure'), self._handle_get_config_node))
         self.xmpp.registerHandler(Callback('pubsub subscribe', StanzaPath('iq@type=set/pubsub/subscribe'), self._handle_subscribe))
         self.xmpp.registerHandler(Callback('pubsub unsubscribe', StanzaPath('iq@type=set/pubsub/unsubscribe'), self._handle_unsubscribe))
+        self.xmpp.registerHandler(Callback('message event', StanzaPath('message/pubsub_event'), self._handle_message_event))
 
     def _handle_get_items(self, iq):
         self.xmpp.event('pubsub_get_items', iq)
@@ -62,9 +63,11 @@ class xep_0060(base_plugin):
     def _handle_unsubscribe(self, iq):
         self.xmpp.event('pubsub_unsubscribe', iq)
 
+    def _handle_message_event(self, message):
+        self.xmpp.event('message_event', message)
 
 
-    def create_node(self, jid, node, config=None, ntype=None, ifrom=None,
+    def create_node(self, jid, node=None, config=None, ntype=None, ifrom=None,
                     block=True, callback=None, timeout=None):
         """
         Create and configure a new pubsub node.
@@ -96,7 +99,10 @@ class xep_0060(base_plugin):
                         be executed when a reply stanza is received.
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
-        iq['pubsub']['create']['node'] = node
+        if node is not None:
+            iq['pubsub']['create']['node'] = node
+        else:
+            iq['pubsub']['create']
 
         if config is not None:
             form_type = 'http://jabber.org/protocol/pubsub#node_config'
