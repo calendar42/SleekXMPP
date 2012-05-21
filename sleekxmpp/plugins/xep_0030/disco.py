@@ -573,28 +573,29 @@ class xep_0030(base_plugin):
         Arguments:
             iq -- The incoming disco#items stanza.
         """
-        if iq['type'] == 'get':
-            log.debug("Received disco items query from " + \
-                      "<%s> to <%s>.", iq['from'], iq['to'])
-            if self.xmpp.is_component:
-                jid = iq['to'].full
-            else:
-                jid = iq['to'].bare
-            items = self._run_node_handler('get_items',
-                                          jid,
-                                          iq['disco_items']['node'],
-                                          iq)
-            if isinstance(items, Iq):
-                items.send()
-            else:
-                iq.reply()
-                if items:
-                    iq.set_payload(items.xml)
-                iq.send()
-        elif iq['type'] == 'result':
-            log.debug("Received disco items result from" + \
-                      "%s to %s.", iq['from'], iq['to'])
-            self.xmpp.event('disco_items', iq)
+	self.xmpp.event('disco_items', iq)
+#        if iq['type'] == 'get':
+#            log.debug("Received disco items query from " + \
+#                      "<%s> to <%s>.", iq['from'], iq['to'])
+#            if self.xmpp.is_component:
+#                jid = iq['to'].full
+#            else:
+#                jid = iq['to'].bare
+#            items = self._run_node_handler('get_items',
+#                                          jid,
+#                                          iq['disco_items']['node'],
+#                                          iq)
+#            if isinstance(items, Iq):
+#                items.send()
+#            else:
+#                iq.reply()
+#                if items:
+#                    iq.set_payload(items.xml)
+#                iq.send()
+#        elif iq['type'] == 'result':
+#            log.debug("Received disco items result from" + \
+#                      "%s to %s.", iq['from'], iq['to'])
+#            self.xmpp.event('disco_items', iq)
 
     def _fix_default_info(self, info):
         """
