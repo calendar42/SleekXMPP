@@ -34,10 +34,15 @@ class xep_0060(base_plugin):
         self.xmpp.registerHandler(Callback('pubsub create node', StanzaPath('iq@type=set/pubsub/create'), self._handle_create_node))
         self.xmpp.registerHandler(Callback('pubsub delete node', StanzaPath('iq@type=set/pubsub/delete'), self._handle_delete_node))
         self.xmpp.registerHandler(Callback('pubsub retract node', StanzaPath('iq@type=set/pubsub/retract'), self._handle_retract_node))
-        self.xmpp.registerHandler(Callback('pubsub_owner config node', StanzaPath('iq@type=get/pubsub_owner/configure'), self._handle_get_config_node))
+        self.xmpp.registerHandler(Callback('pubsub_owner get node config', StanzaPath('iq@type=get/pubsub_owner/configure'), self._handle_get_node_config))
+        self.xmpp.registerHandler(Callback('pubsub_owner set node config', StanzaPath('iq@type=set/pubsub_owner/configure'), self._handle_set_node_config))
         self.xmpp.registerHandler(Callback('pubsub subscribe', StanzaPath('iq@type=set/pubsub/subscribe'), self._handle_subscribe))
+        self.xmpp.registerHandler(Callback('pubsub_owner set subscriptions', StanzaPath('iq@type=set/pubsub_owner/subscriptions'), self._handle_owner_set_subscriptions))
+        self.xmpp.registerHandler(Callback('pubsub_owner get subscriptions', StanzaPath('iq@type=get/pubsub_owner/subscriptions'), self._handle_owner_get_subscriptions))
         self.xmpp.registerHandler(Callback('pubsub unsubscribe', StanzaPath('iq@type=set/pubsub/unsubscribe'), self._handle_unsubscribe))
         self.xmpp.registerHandler(Callback('message event', StanzaPath('message/pubsub_event'), self._handle_message_event))
+        self.xmpp.registerHandler(Callback('pubsub_owner set affiliations', StanzaPath('iq@type=set/pubsub_owner/affiliations'), self._handle_set_affiliations))
+        self.xmpp.registerHandler(Callback('pubsub_owner get affiliations', StanzaPath('iq@type=get/pubsub_owner/affiliations'), self._handle_get_affiliations))
 
     def _handle_get_items(self, iq):
         self.xmpp.event('pubsub_get_items', iq)
@@ -54,12 +59,27 @@ class xep_0060(base_plugin):
     def _handle_retract_node(self, iq):
         self.xmpp.event('pubsub_retract_node', iq)
 
-    def _handle_get_config_node(self, iq):
-        self.xmpp.event('pubsub_get_config_node', iq)
+    def _handle_get_node_config(self, iq):
+        self.xmpp.event('pubsub_get_node_config', iq)
+        
+    def _handle_set_node_config(self, iq):
+        self.xmpp.event('pubsub_set_node_config', iq)
         
     def _handle_subscribe(self, iq):
         self.xmpp.event('pubsub_subscribe', iq)
+
+    def _handle_owner_set_subscriptions(self, iq):
+        self.xmpp.event('pubsub_owner_set_subscriptions', iq)
     
+    def _handle_owner_get_subscriptions(self, iq):
+        self.xmpp.event('pubsub_owner_get_subscriptions', iq)
+
+    def _handle_set_affiliations(self, iq):
+        self.xmpp.event('pubsub_set_affiliations', iq)
+
+    def _handle_get_affiliations(self, iq):
+        self.xmpp.event('pubsub_get_affiliations', iq)
+
     def _handle_unsubscribe(self, iq):
         self.xmpp.event('pubsub_unsubscribe', iq)
 

@@ -24,7 +24,7 @@ class PubsubErrorCondition(ElementBase):
                       'not-subscribed', 'payload-too-big',
                       'payload-required', 'pending-subscription',
                       'presence-subscription-required', 'subid-required',
-                      'too-many-subscriptions', 'unsupported'))
+                      'too-many-subscriptions', 'unsupported', 'not-acceptable'))
     condition_ns = 'http://jabber.org/protocol/pubsub#errors'
 
     def setup(self, xml):

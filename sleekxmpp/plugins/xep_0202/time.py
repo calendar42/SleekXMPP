@@ -65,9 +65,10 @@ class xep_0202(base_plugin):
         Arguments:
             iq -- The Iq time request stanza.
         """
-        iq.reply()
-        iq['entity_time']['time'] = self.local_time(iq['to'])
-        iq.send()
+        self.xmpp.event('time_request', iq)
+        #iq.reply()
+        #iq['entity_time']['time'] = self.local_time(iq['to'])
+        #iq.send()
 
     def get_entity_time(self, to, ifrom=None, **iqargs):
         """

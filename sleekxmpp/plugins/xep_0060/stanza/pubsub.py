@@ -65,7 +65,6 @@ class SubscribeOptions(ElementBase, OptionalSetting):
     plugin_attrib = 'suboptions'
     interfaces = set(('required',))
 
-
 class Item(ElementBase):
     namespace = 'http://jabber.org/protocol/pubsub'
     name = 'item'
