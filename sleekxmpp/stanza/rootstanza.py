@@ -13,7 +13,10 @@ import sys
 from sleekxmpp.exceptions import XMPPError, IqError, IqTimeout
 from sleekxmpp.stanza import Error
 from sleekxmpp.xmlstream import ET, StanzaBase, register_stanza_plugin
-
+try:
+    from settings import XMPP_ERROR_BOT
+except:
+    XMPP_ERROR_BOT = None
 
 log = logging.getLogger(__name__)
 
@@ -54,12 +57,18 @@ class RootStanza(StanzaBase):
             self['error']['type'] = 'cancel'
             log.warning('You should catch IqError exceptions')
             self.send()
+            if XMPP_ERROR_BOT is not None:
+                self['to'] = XMPP_ERROR_BOT
+                self.send()
         elif isinstance(e, IqTimeout):
             self.reply()
             self['error']['condition'] = 'remote-server-timeout'
             self['error']['type'] = 'wait'
             log.warning('You should catch IqTimeout exceptions')
             self.send()
+            if XMPP_ERROR_BOT is not None:
+                self['to'] = XMPP_ERROR_BOT
+                self.send()
         elif isinstance(e, XMPPError):
             # We raised this deliberately
             self.reply(clear=e.clear)
@@ -72,6 +81,9 @@ class RootStanza(StanzaBase):
                                     e.extension_args)
                 self['error'].append(extxml)
             self.send()
+            if XMPP_ERROR_BOT is not None:
+                self['to'] = XMPP_ERROR_BOT
+                self.send()
         else:
             # We probably didn't raise this on purpose, so send an error stanza
             self.reply()
@@ -79,6 +91,9 @@ class RootStanza(StanzaBase):
             self['error']['text'] = "SleekXMPP got into trouble."
             self['error']['type'] = 'cancel'
             self.send()
+            if XMPP_ERROR_BOT is not None:
+                self['to'] = XMPP_ERROR_BOT
+                self.send()
             # log the error
             log.exception('Error handling {%s}%s stanza' ,  self.namespace, self.name)
             # Finally raise the exception to a global exception handler
