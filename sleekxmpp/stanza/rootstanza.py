@@ -51,7 +51,7 @@ class RootStanza(StanzaBase):
             # locally. Using the condition/text from that error
             # response could leak too much information, so we'll
             # only use a generic error here.
-            self.reply()
+            self.reply(clear=False)
             self['error']['condition'] = 'undefined-condition'
             self['error']['text'] = 'External error'
             self['error']['type'] = 'cancel'
@@ -61,7 +61,7 @@ class RootStanza(StanzaBase):
                 self['to'] = XMPP_ERROR_BOT
                 self.send()
         elif isinstance(e, IqTimeout):
-            self.reply()
+            self.reply(clear=False)
             self['error']['condition'] = 'remote-server-timeout'
             self['error']['type'] = 'wait'
             log.warning('You should catch IqTimeout exceptions')
@@ -71,7 +71,7 @@ class RootStanza(StanzaBase):
                 self.send()
         elif isinstance(e, XMPPError):
             # We raised this deliberately
-            self.reply(clear=e.clear)
+            self.reply(clear=False)
             self['error']['condition'] = e.condition
             self['error']['text'] = e.text
             self['error']['type'] = e.etype
@@ -86,7 +86,7 @@ class RootStanza(StanzaBase):
                 self.send()
         else:
             # We probably didn't raise this on purpose, so send an error stanza
-            self.reply()
+            self.reply(clear=False)
             self['error']['condition'] = 'undefined-condition'
             self['error']['text'] = "SleekXMPP got into trouble."
             self['error']['type'] = 'cancel'
