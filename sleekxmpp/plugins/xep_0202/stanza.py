@@ -64,6 +64,7 @@ class EntityTime(ElementBase):
             date = xep_0082.parse(value)
         self['utc'] = date
         self['tzo'] = date.tzinfo
+        #self['tzo'] = tzutc()
 
     def get_time(self):
         """

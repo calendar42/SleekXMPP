@@ -9,7 +9,6 @@
 from sleekxmpp.xmlstream import ElementBase
 from sleekxmpp.plugins import xep_0082
 
-
 class Geoloc(ElementBase):
 
     """
@@ -63,8 +62,6 @@ class Geoloc(ElementBase):
                        the location.
     """
 
-    namespace = 'http://jabber.org/protocol/geoloc'
-    name = 'geoloc'
     interfaces = set(('accuracy', 'alt', 'area', 'bearing', 'building',
                       'country', 'countrycode', 'datum', 'dscription',
                       'error', 'floor', 'lat', 'locality', 'lon',

@@ -151,7 +151,65 @@ class XEP_0060(BasePlugin):
         """
         self.node_event_map[node] = event_name
 
-    def create_node(self, jid, node, config=None, ntype=None, ifrom=None,
+        self.xmpp.registerHandler(Callback('pubsub get items', StanzaPath('iq@type=get/pubsub/items'), self._handle_get_items))
+        self.xmpp.registerHandler(Callback('pubsub set items', StanzaPath('iq@type=set/pubsub/publish'), self._handle_set_items))
+        self.xmpp.registerHandler(Callback('pubsub create node', StanzaPath('iq@type=set/pubsub/create'), self._handle_create_node))
+        self.xmpp.registerHandler(Callback('pubsub delete node', StanzaPath('iq@type=set/pubsub/delete'), self._handle_delete_node))
+        self.xmpp.registerHandler(Callback('pubsub retract node', StanzaPath('iq@type=set/pubsub/retract'), self._handle_retract_node))
+        self.xmpp.registerHandler(Callback('pubsub_owner get node config', StanzaPath('iq@type=get/pubsub_owner/configure'), self._handle_get_node_config))
+        self.xmpp.registerHandler(Callback('pubsub_owner set node config', StanzaPath('iq@type=set/pubsub_owner/configure'), self._handle_set_node_config))
+        self.xmpp.registerHandler(Callback('pubsub subscribe', StanzaPath('iq@type=set/pubsub/subscribe'), self._handle_subscribe))
+        self.xmpp.registerHandler(Callback('pubsub_owner set subscriptions', StanzaPath('iq@type=set/pubsub_owner/subscriptions'), self._handle_owner_set_subscriptions))
+        self.xmpp.registerHandler(Callback('pubsub_owner get subscriptions', StanzaPath('iq@type=get/pubsub_owner/subscriptions'), self._handle_owner_get_subscriptions))
+        self.xmpp.registerHandler(Callback('pubsub unsubscribe', StanzaPath('iq@type=set/pubsub/unsubscribe'), self._handle_unsubscribe))
+        self.xmpp.registerHandler(Callback('message event', StanzaPath('message/pubsub_event'), self._handle_message_event))
+        self.xmpp.registerHandler(Callback('pubsub_owner set affiliations', StanzaPath('iq@type=set/pubsub_owner/affiliations'), self._handle_set_affiliations))
+        self.xmpp.registerHandler(Callback('pubsub_owner get affiliations', StanzaPath('iq@type=get/pubsub_owner/affiliations'), self._handle_get_affiliations))
+
+    def _handle_get_items(self, iq):
+        self.xmpp.event('pubsub_get_items', iq)
+
+    def _handle_set_items(self, iq):
+        self.xmpp.event('pubsub_set_items', iq)
+
+    def _handle_create_node(self, iq):
+        self.xmpp.event('pubsub_create_node', iq)
+
+    def _handle_delete_node(self, iq):
+        self.xmpp.event('pubsub_delete_node', iq)
+
+    def _handle_retract_node(self, iq):
+        self.xmpp.event('pubsub_retract_node', iq)
+
+    def _handle_get_node_config(self, iq):
+        self.xmpp.event('pubsub_get_node_config', iq)
+        
+    def _handle_set_node_config(self, iq):
+        self.xmpp.event('pubsub_set_node_config', iq)
+        
+    def _handle_subscribe(self, iq):
+        self.xmpp.event('pubsub_subscribe', iq)
+
+    def _handle_owner_set_subscriptions(self, iq):
+        self.xmpp.event('pubsub_owner_set_subscriptions', iq)
+    
+    def _handle_owner_get_subscriptions(self, iq):
+        self.xmpp.event('pubsub_owner_get_subscriptions', iq)
+
+    def _handle_set_affiliations(self, iq):
+        self.xmpp.event('pubsub_set_affiliations', iq)
+
+    def _handle_get_affiliations(self, iq):
+        self.xmpp.event('pubsub_get_affiliations', iq)
+
+    def _handle_unsubscribe(self, iq):
+        self.xmpp.event('pubsub_unsubscribe', iq)
+
+    def _handle_message_event(self, message):
+        self.xmpp.event('message_event', message)
+
+
+    def create_node(self, jid, node=None, config=None, ntype=None, ifrom=None,
                     block=True, callback=None, timeout=None):
         """
         Create and configure a new pubsub node.
@@ -183,7 +241,10 @@ class XEP_0060(BasePlugin):
                         be executed when a reply stanza is received.
         """
         iq = self.xmpp.Iq(sto=jid, sfrom=ifrom, stype='set')
-        iq['pubsub']['create']['node'] = node
+        if node is not None:
+            iq['pubsub']['create']['node'] = node
+        else:
+            iq['pubsub']['create']
 
         if config is not None:
             form_type = 'http://jabber.org/protocol/pubsub#node_config'

@@ -620,37 +620,30 @@ class XEP_0030(BasePlugin):
         Arguments:
             iq -- The incoming disco#items stanza.
         """
-        if iq['type'] == 'get':
-            log.debug("Received disco info query from " + \
-                      "<%s> to <%s>.", iq['from'], iq['to'])
-            info = self.api['get_info'](iq['to'],
-                                        iq['disco_info']['node'],
-                                        iq['from'],
-                                        iq)
-            if isinstance(info, Iq):
-                info['id'] = iq['id']
-                info.send()
-            else:
-                iq.reply()
-                if info:
-                    info = self._fix_default_info(info)
-                    iq.set_payload(info.xml)
-                iq.send()
-        elif iq['type'] == 'result':
-            log.debug("Received disco info result from " + \
-                      "<%s> to <%s>.", iq['from'], iq['to'])
-            if self.use_cache:
-                log.debug("Caching disco info result from " \
-                      "<%s> to <%s>.", iq['from'], iq['to'])
-                if self.xmpp.is_component:
-                    ito = iq['to'].full
-                else:
-                    ito = None
-                self.api['cache_info'](iq['from'],
-                                       iq['disco_info']['node'],
-                                       ito,
-                                       iq)
-            self.xmpp.event('disco_info', iq)
+        self.xmpp.event('disco_info', iq)
+#        if iq['type'] == 'get':
+#            log.debug("Received disco info query from " + \
+#                      "<%s> to <%s>.", iq['from'], iq['to'])
+#            if self.xmpp.is_component:
+#                jid = iq['to'].full
+#            else:
+#                jid = iq['to'].bare
+#            info = self._run_node_handler('get_info',
+#                                          jid,
+#                                          iq['disco_info']['node'],
+#                                          iq)
+#            if isinstance(info, Iq):
+#                info.send()
+#            else:
+#                iq.reply()
+#                if info:
+#                    info = self._fix_default_info(info)
+#                    iq.set_payload(info.xml)
+#                iq.send()
+#        elif iq['type'] == 'result':
+#            log.debug("Received disco info result from" + \
+#                      "%s to %s.", iq['from'], iq['to'])
+#            self.xmpp.event('disco_info', iq)
 
     def _handle_disco_items(self, iq):
         """
@@ -661,24 +654,29 @@ class XEP_0030(BasePlugin):
         Arguments:
             iq -- The incoming disco#items stanza.
         """
-        if iq['type'] == 'get':
-            log.debug("Received disco items query from " + \
-                      "<%s> to <%s>.", iq['from'], iq['to'])
-            items = self.api['get_items'](iq['to'],
-                                          iq['disco_items']['node'],
-                                          iq['from'],
-                                          iq)
-            if isinstance(items, Iq):
-                items.send()
-            else:
-                iq.reply()
-                if items:
-                    iq.set_payload(items.xml)
-                iq.send()
-        elif iq['type'] == 'result':
-            log.debug("Received disco items result from " + \
-                      "%s to %s.", iq['from'], iq['to'])
-            self.xmpp.event('disco_items', iq)
+        self.xmpp.event('disco_items', iq)
+#        if iq['type'] == 'get':
+#            log.debug("Received disco items query from " + \
+#                      "<%s> to <%s>.", iq['from'], iq['to'])
+#            if self.xmpp.is_component:
+#                jid = iq['to'].full
+#            else:
+#                jid = iq['to'].bare
+#            items = self._run_node_handler('get_items',
+#                                          jid,
+#                                          iq['disco_items']['node'],
+#                                          iq)
+#            if isinstance(items, Iq):
+#                items.send()
+#            else:
+#                iq.reply()
+#                if items:
+#                    iq.set_payload(items.xml)
+#                iq.send()
+#        elif iq['type'] == 'result':
+#            log.debug("Received disco items result from" + \
+#                      "%s to %s.", iq['from'], iq['to'])
+#            self.xmpp.event('disco_items', iq)
 
     def _fix_default_info(self, info):
         """

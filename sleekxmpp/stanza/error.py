@@ -64,7 +64,8 @@ class Error(ElementBase):
                       'registration-required', 'remote-server-not-found',
                       'remote-server-timeout', 'resource-constraint',
                       'service-unavailable', 'subscription-required',
-                      'undefined-condition', 'unexpected-request'))
+                      'undefined-condition', 'unexpected-request',
+                      'policy-violation'))
     condition_ns = 'urn:ietf:params:xml:ns:xmpp-stanzas'
     types = set(('cancel', 'continue', 'modify', 'auth', 'wait'))
 
