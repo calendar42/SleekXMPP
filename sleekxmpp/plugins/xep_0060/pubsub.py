@@ -14,9 +14,7 @@ from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.plugins.base import base_plugin
 from sleekxmpp.plugins.xep_0060 import stanza
 
-
 log = logging.getLogger(__name__)
-
 
 class xep_0060(base_plugin):
 
