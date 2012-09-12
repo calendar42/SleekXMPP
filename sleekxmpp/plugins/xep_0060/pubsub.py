@@ -14,9 +14,7 @@ from sleekxmpp.xmlstream.matcher import StanzaPath
 from sleekxmpp.plugins.base import BasePlugin
 from sleekxmpp.plugins.xep_0060 import stanza
 
-
 log = logging.getLogger(__name__)
-
 
 class XEP_0060(BasePlugin):
 
@@ -32,26 +30,20 @@ class XEP_0060(BasePlugin):
     def plugin_init(self):
         self.node_event_map = {}
 
-        self.xmpp.register_handler(
-                Callback('Pubsub Event: Items',
-                    StanzaPath('message/pubsub_event/items'),
-                    self._handle_event_items))
-        self.xmpp.register_handler(
-                Callback('Pubsub Event: Purge',
-                    StanzaPath('message/pubsub_event/purge'),
-                    self._handle_event_purge))
-        self.xmpp.register_handler(
-                Callback('Pubsub Event: Delete',
-                    StanzaPath('message/pubsub_event/delete'),
-                    self._handle_event_delete))
-        self.xmpp.register_handler(
-                Callback('Pubsub Event: Configuration',
-                    StanzaPath('message/pubsub_event/configuration'),
-                    self._handle_event_configuration))
-        self.xmpp.register_handler(
-                Callback('Pubsub Event: Subscription',
-                    StanzaPath('message/pubsub_event/subscription'),
-                    self._handle_event_subscription))
+        self.xmpp.registerHandler(Callback('pubsub get items', StanzaPath('iq@type=get/pubsub/items'), self._handle_get_items))
+        self.xmpp.registerHandler(Callback('pubsub set items', StanzaPath('iq@type=set/pubsub/publish'), self._handle_set_items))
+        self.xmpp.registerHandler(Callback('pubsub create node', StanzaPath('iq@type=set/pubsub/create'), self._handle_create_node))
+        self.xmpp.registerHandler(Callback('pubsub delete node', StanzaPath('iq@type=set/pubsub/delete'), self._handle_delete_node))
+        self.xmpp.registerHandler(Callback('pubsub retract node', StanzaPath('iq@type=set/pubsub/retract'), self._handle_retract_node))
+        self.xmpp.registerHandler(Callback('pubsub_owner get node config', StanzaPath('iq@type=get/pubsub_owner/configure'), self._handle_get_node_config))
+        self.xmpp.registerHandler(Callback('pubsub_owner set node config', StanzaPath('iq@type=set/pubsub_owner/configure'), self._handle_set_node_config))
+        self.xmpp.registerHandler(Callback('pubsub subscribe', StanzaPath('iq@type=set/pubsub/subscribe'), self._handle_subscribe))
+        self.xmpp.registerHandler(Callback('pubsub_owner set subscriptions', StanzaPath('iq@type=set/pubsub_owner/subscriptions'), self._handle_owner_set_subscriptions))
+        self.xmpp.registerHandler(Callback('pubsub_owner get subscriptions', StanzaPath('iq@type=get/pubsub_owner/subscriptions'), self._handle_owner_get_subscriptions))
+        self.xmpp.registerHandler(Callback('pubsub unsubscribe', StanzaPath('iq@type=set/pubsub/unsubscribe'), self._handle_unsubscribe))
+        self.xmpp.registerHandler(Callback('message event', StanzaPath('message/pubsub_event'), self._handle_message_event))
+        self.xmpp.registerHandler(Callback('pubsub_owner set affiliations', StanzaPath('iq@type=set/pubsub_owner/affiliations'), self._handle_set_affiliations))
+        self.xmpp.registerHandler(Callback('pubsub_owner get affiliations', StanzaPath('iq@type=get/pubsub_owner/affiliations'), self._handle_get_affiliations))
 
         self.xmpp['xep_0131'].supported_headers.add('SubID')
 
@@ -150,21 +142,6 @@ class XEP_0060(BasePlugin):
                           notification from the given node is received.
         """
         self.node_event_map[node] = event_name
-
-        self.xmpp.registerHandler(Callback('pubsub get items', StanzaPath('iq@type=get/pubsub/items'), self._handle_get_items))
-        self.xmpp.registerHandler(Callback('pubsub set items', StanzaPath('iq@type=set/pubsub/publish'), self._handle_set_items))
-        self.xmpp.registerHandler(Callback('pubsub create node', StanzaPath('iq@type=set/pubsub/create'), self._handle_create_node))
-        self.xmpp.registerHandler(Callback('pubsub delete node', StanzaPath('iq@type=set/pubsub/delete'), self._handle_delete_node))
-        self.xmpp.registerHandler(Callback('pubsub retract node', StanzaPath('iq@type=set/pubsub/retract'), self._handle_retract_node))
-        self.xmpp.registerHandler(Callback('pubsub_owner get node config', StanzaPath('iq@type=get/pubsub_owner/configure'), self._handle_get_node_config))
-        self.xmpp.registerHandler(Callback('pubsub_owner set node config', StanzaPath('iq@type=set/pubsub_owner/configure'), self._handle_set_node_config))
-        self.xmpp.registerHandler(Callback('pubsub subscribe', StanzaPath('iq@type=set/pubsub/subscribe'), self._handle_subscribe))
-        self.xmpp.registerHandler(Callback('pubsub_owner set subscriptions', StanzaPath('iq@type=set/pubsub_owner/subscriptions'), self._handle_owner_set_subscriptions))
-        self.xmpp.registerHandler(Callback('pubsub_owner get subscriptions', StanzaPath('iq@type=get/pubsub_owner/subscriptions'), self._handle_owner_get_subscriptions))
-        self.xmpp.registerHandler(Callback('pubsub unsubscribe', StanzaPath('iq@type=set/pubsub/unsubscribe'), self._handle_unsubscribe))
-        self.xmpp.registerHandler(Callback('message event', StanzaPath('message/pubsub_event'), self._handle_message_event))
-        self.xmpp.registerHandler(Callback('pubsub_owner set affiliations', StanzaPath('iq@type=set/pubsub_owner/affiliations'), self._handle_set_affiliations))
-        self.xmpp.registerHandler(Callback('pubsub_owner get affiliations', StanzaPath('iq@type=get/pubsub_owner/affiliations'), self._handle_get_affiliations))
 
     def _handle_get_items(self, iq):
         self.xmpp.event('pubsub_get_items', iq)
