@@ -6,7 +6,6 @@
     See the file LICENSE for copying permission.
 """
 
-from sleekxmpp.stanza import Error
 from sleekxmpp.stanza.rootstanza import RootStanza
 from sleekxmpp.xmlstream import StanzaBase, ET
 
@@ -55,34 +54,14 @@ class Message(RootStanza):
         del_mucnick -- Dummy method to prevent deletion.
     """
 
-    namespace = 'jabber:client'
     name = 'message'
-    interfaces = set(('type', 'to', 'from', 'id', 'body', 'subject',
-                      'mucroom', 'mucnick'))
-    sub_interfaces = set(('body', 'subject'))
+    namespace = 'jabber:client'
     plugin_attrib = name
-    types = set((None, 'normal', 'chat', 'headline', 'error', 'groupchat'))
-
-    def setup(self, xml=None):
-        """
-        Populate the stanza object using an optional XML object.
-
-        Overrides StanzaBase.setup.
-
-        Arguments:
-            xml -- Use an existing XML object for the stanza's values.
-        """
-        # To comply with PEP8, method names now use underscores.
-        # Deprecated method names are re-mapped for backwards compatibility.
-        self.getType = self.get_type
-        self.getMucroom = self.get_mucroom
-        self.setMucroom = self.set_mucroom
-        self.delMucroom = self.del_mucroom
-        self.getMucnick = self.get_mucnick
-        self.setMucnick = self.set_mucnick
-        self.delMucnick = self.del_mucnick
-
-        return StanzaBase.setup(self, xml)
+    interfaces = set(['type', 'to', 'from', 'id', 'body', 'subject',
+                      'thread', 'parent_thread', 'mucroom', 'mucnick'])
+    sub_interfaces = set(['body', 'subject', 'thread'])
+    lang_interfaces = sub_interfaces
+    types = set(['normal', 'chat', 'headline', 'error', 'groupchat'])
 
     def get_type(self):
         """
@@ -94,17 +73,42 @@ class Message(RootStanza):
         """
         return self._get_attr('type', 'normal')
 
+    def get_parent_thread(self):
+        """Return the message thread's parent thread."""
+        thread = self.xml.find('{%s}thread' % self.namespace)
+        if thread is not None:
+            return thread.attrib.get('parent', '')
+        return ''
+
+    def set_parent_thread(self, value):
+        """Add or change the message thread's parent thread."""
+        thread = self.xml.find('{%s}thread' % self.namespace)
+        if value:
+            if thread is None:
+                thread = ET.Element('{%s}thread' % self.namespace)
+                self.xml.append(thread)
+            thread.attrib['parent'] = value
+        else:
+            if thread is not None and 'parent' in thread.attrib:
+                del thread.attrib['parent']
+
+    def del_parent_thread(self):
+        """Delete the message thread's parent reference."""
+        thread = self.xml.find('{%s}thread' % self.namespace)
+        if thread is not None and 'parent' in thread.attrib:
+            del thread.attrib['parent']
+
     def chat(self):
         """Set the message type to 'chat'."""
         self['type'] = 'chat'
         return self
 
     def normal(self):
-        """Set the message type to 'chat'."""
+        """Set the message type to 'normal'."""
         self['type'] = 'normal'
         return self
 
-    def reply(self, body=None):
+    def reply(self, body=None, clear=True):
         """
         Create a message reply.
 
@@ -114,11 +118,19 @@ class Message(RootStanza):
         adds a message body if one is given.
 
         Arguments:
-            body -- Optional text content for the message.
+            body  -- Optional text content for the message.
+            clear -- Indicates if existing content should be removed
+                     before replying. Defaults to True.
         """
-        StanzaBase.reply(self)
+        thread = self['thread']
+        parent = self['parent_thread']
+
+        StanzaBase.reply(self, clear)
         if self['type'] == 'groupchat':
             self['to'] = self['to'].bare
+
+        self['thread'] = thread
+        self['parent_thread'] = parent
 
         del self['id']
 
@@ -163,3 +175,14 @@ class Message(RootStanza):
     def del_mucnick(self):
         """Dummy method to prevent deletion."""
         pass
+
+
+# To comply with PEP8, method names now use underscores.
+# Deprecated method names are re-mapped for backwards compatibility.
+Message.getType = Message.get_type
+Message.getMucroom = Message.get_mucroom
+Message.setMucroom = Message.set_mucroom
+Message.delMucroom = Message.del_mucroom
+Message.getMucnick = Message.get_mucnick
+Message.setMucnick = Message.set_mucnick
+Message.delMucnick = Message.del_mucnick

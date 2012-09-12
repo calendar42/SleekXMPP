@@ -7,10 +7,9 @@
 """
 
 import socket
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+import threading
+
+from sleekxmpp.util import Queue
 
 
 class TestLiveSocket(object):
@@ -38,8 +37,10 @@ class TestLiveSocket(object):
         """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.recv_buffer = []
-        self.recv_queue = queue.Queue()
-        self.send_queue = queue.Queue()
+        self.recv_queue = Queue()
+        self.send_queue = Queue()
+        self.send_queue_lock = threading.Lock()
+        self.recv_queue_lock = threading.Lock()
         self.is_live = True
 
     def __getattr__(self, name):
@@ -54,6 +55,18 @@ class TestLiveSocket(object):
 
     # ------------------------------------------------------------------
     # Testing Interface
+
+    def disconnect_errror(self):
+        """
+        Used to simulate a socket disconnection error.
+
+        Not used by live sockets.
+        """
+        try:
+            self.socket.shutdown()
+            self.socket.close()
+        except:
+            pass
 
     def next_sent(self, timeout=None):
         """
@@ -108,7 +121,8 @@ class TestLiveSocket(object):
             Placeholders. Same as for socket.recv.
         """
         data = self.socket.recv(*args, **kwargs)
-        self.recv_queue.put(data)
+        with self.recv_queue_lock:
+            self.recv_queue.put(data)
         return data
 
     def send(self, data):
@@ -120,8 +134,9 @@ class TestLiveSocket(object):
         Arguments:
             data -- String value to write.
         """
-        self.send_queue.put(data)
-        self.socket.send(data)
+        with self.send_queue_lock:
+            self.send_queue.put(data)
+        return self.socket.send(data)
 
     # ------------------------------------------------------------------
     # File Socket
@@ -143,3 +158,15 @@ class TestLiveSocket(object):
             Placeholders, same as socket.recv()
         """
         return self.recv(*args, **kwargs)
+
+    def clear(self):
+        """
+        Empty the send queue, typically done once the session has started to
+        remove the feature negotiation and log in stanzas.
+        """
+        with self.send_queue_lock:
+            for i in range(0, self.send_queue.qsize()):
+                self.send_queue.get(block=False)
+        with self.recv_queue_lock:
+            for i in range(0, self.recv_queue.qsize()):
+                self.recv_queue.get(block=False)
