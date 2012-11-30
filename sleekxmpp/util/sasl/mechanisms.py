@@ -123,6 +123,17 @@ class X_MESSENGER_OAUTH2(Mech):
         return self.credentials['access_token']
 
 
+@sasl_mech(10)
+class X_OAUTH2(Mech):
+
+    name = 'X-OAUTH2'
+    required_credentials = set(['username', 'access_token'])
+
+    def process(self, challenge=b''):
+        return b'\x00' + self.credentials['username'] + \
+               b'\x00' + self.credentials['access_token']
+
+
 @sasl_mech(3)
 class X_GOOGLE_TOKEN(Mech):
 
@@ -456,7 +467,8 @@ class DIGEST(Mech):
             'qop': self.qop,
             'digest-uri': quote(self.digest_uri()),
             'response': self.response(b'AUTHENTICATE'),
-            'maxbuf': self.maxbuf
+            'maxbuf': self.maxbuf,
+            'charset': 'utf-8'
         }
         resp = b''
         for key, value in data.items():
@@ -469,7 +481,7 @@ class DIGEST(Mech):
             if self.cnonce and self.nonce and self.nonce_count and self.qop:
                 self.nonce_count += 1
                 return self.respond()
-            return b''
+            return None
 
         data = self.parse(challenge)
         if 'rspauth' in data:
