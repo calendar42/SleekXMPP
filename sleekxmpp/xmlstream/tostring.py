@@ -83,7 +83,8 @@ def tostring(xml=None, xmlns='', stanza_ns='', stream=None,
 
     # Output escaped attribute values.
     for attrib, value in xml.attrib.items():
-        value = escape(value, use_cdata)
+        # Attributes shouldn't be wrapped in CDATA
+        value = escape(value)
         if '}' not in attrib:
             output.append(' %s="%s"' % (attrib, value))
         else:
