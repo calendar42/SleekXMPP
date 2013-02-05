@@ -50,7 +50,7 @@ class OwnerAffiliations(Affiliations):
 
 class OwnerAffiliation(Affiliation):
     namespace = 'http://jabber.org/protocol/pubsub#owner'
-    interfaces = set(('affiliation', 'jid', 'x-reason'))
+    interfaces = set(('affiliation', 'jid', 'x-reason', 'x-attendance'))
 
 
 class OwnerConfigure(Configure):
