@@ -590,10 +590,10 @@ class XEP_0060(BasePlugin):
         if affiliations is None:
             affiliations = []
 
-        for jid, affiliation in affiliations:
+        for affiliation in affiliations:
             aff = stanza.OwnerAffiliation()
-            aff['jid'] = jid
-            aff['affiliation'] = affiliation
+            aff['jid'] = affiliation['jid']
+            aff['affiliation'] = affiliation['affiliation']
             iq['pubsub_owner']['affiliations'].append(aff)
 
         return iq.send(block=block, callback=callback, timeout=timeout)
