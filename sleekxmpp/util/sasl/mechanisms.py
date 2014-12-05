@@ -287,7 +287,9 @@ class SCRAM(Mech):
         if nonce[:len(self.cnonce)] != self.cnonce:
             raise SASLCancelled('Invalid nonce')
 
-        cbind_data = self.credentials['channel_binding']
+        cbind_data = b''
+        if self.use_channel_binding:
+            cbind_data = self.credentials['channel_binding']
         cbind_input = self.gs2_header + cbind_data
         channel_binding = b'c=' + b64encode(cbind_input).replace(b'\n', b'')
 
@@ -530,6 +532,9 @@ else:
                     result = kerberos.authGSSClientStep(self.gss, b64_challenge)
                     if result != kerberos.AUTH_GSS_CONTINUE:
                         self.step = 1
+                elif not challenge:
+                    kerberos.authGSSClientClean(self.gss)
+                    return b''
                 elif self.step == 1:
                     username = self.credentials['username']
 
@@ -539,7 +544,7 @@ else:
 
                 resp = kerberos.authGSSClientResponse(self.gss)
             except kerberos.GSSError as e:
-                raise SASLCancelled('Kerberos error: %s' % e.message)
+                raise SASLCancelled('Kerberos error: %s' % e)
             if not resp:
                 return b''
             else:

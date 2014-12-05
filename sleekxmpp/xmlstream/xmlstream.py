@@ -31,7 +31,7 @@ import errno
 from xml.parsers.expat import ExpatError
 
 import sleekxmpp
-from sleekxmpp.util import Queue, QueueEmpty
+from sleekxmpp.util import Queue, QueueEmpty, safedict
 from sleekxmpp.thirdparty.statemachine import StateMachine
 from sleekxmpp.xmlstream import Scheduler, tostring, cert
 from sleekxmpp.xmlstream.stanzabase import StanzaBase, ET, ElementBase
@@ -223,6 +223,11 @@ class XMLStream(object):
 
         #: If set to ``True``, attempt to use IPv6.
         self.use_ipv6 = True
+
+        #: If set to ``True``, allow using the ``dnspython`` DNS library
+        #: if available. If set to ``False``, the builtin DNS resolver
+        #: will be used, even if ``dnspython`` is installed.
+        self.use_dnspython = True
 
         #: Use CDATA for escaping instead of XML entities. Defaults
         #: to ``False``.
@@ -513,13 +518,13 @@ class XMLStream(object):
             else:
                 cert_policy = ssl.CERT_REQUIRED
 
-            ssl_args = {
+            ssl_args = safedict({
                 'certfile': self.certfile,
                 'keyfile': self.keyfile,
                 'ca_certs': self.ca_certs,
                 'cert_reqs': cert_policy,
-                'do_handshake_on_connect': False,
-            }
+                'do_handshake_on_connect': False
+            })
 
             if sys.version_info >= (2, 7):
                 ssl_args['ciphers'] = self.ciphers
@@ -611,7 +616,7 @@ class XMLStream(object):
         headers = '\r\n'.join(headers) + '\r\n\r\n'
 
         try:
-            log.debug("Connecting to proxy: %s:%s", address)
+            log.debug("Connecting to proxy: %s:%s", *address)
             self.socket.connect(address)
             self.send_raw(headers, now=True)
             resp = ''
@@ -837,13 +842,13 @@ class XMLStream(object):
         else:
             cert_policy = ssl.CERT_REQUIRED
 
-        ssl_args = {
+        ssl_args = safedict({
             'certfile': self.certfile,
             'keyfile': self.keyfile,
             'ca_certs': self.ca_certs,
             'cert_reqs': cert_policy,
-            'do_handshake_on_connect': False,
-        }
+            'do_handshake_on_connect': False
+        })
 
         if sys.version_info >= (2, 7):
             ssl_args['ciphers'] = self.ciphers
@@ -1081,7 +1086,8 @@ class XMLStream(object):
 
         return resolve(domain, port, service=self.dns_service,
                                      resolver=resolver,
-                                     use_ipv6=self.use_ipv6)
+                                     use_ipv6=self.use_ipv6,
+                                     use_dnspython=self.use_dnspython)
 
     def pick_dns_answer(self, domain, port=None):
         """Pick a server and port from DNS answers.
